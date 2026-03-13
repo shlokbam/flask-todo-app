@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DevOps Task Manager</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6fb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 16px;
+      color: #1a1a2e;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.5px;
+    }
+
+    header p {
+      color: #6b7280;
+      margin-top: 6px;
+      font-size: 0.95rem;
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px 28px;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+      min-width: 120px;
+    }
+
+    .stat-card .num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #4f46e5;
+    }
+
+    .stat-card .label {
+      font-size: 0.78rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #e5e7eb;
+      padding: 28px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .add-form input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
+      background: #f9fafb;
+    }
+
+    .add-form input:focus {
+      border-color: #4f46e5;
+      background: #fff;
+    }
+
+    .add-form button {
+      padding: 12px 20px;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+
+    .add-form button:hover { background: #4338ca; }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .task-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      background: #f9fafb;
+      border-radius: 10px;
+      border: 1px solid #f3f4f6;
+      transition: background 0.15s;
+    }
+
+    .task-item:hover { background: #f3f4f6; }
+
+    .task-item.done-item { opacity: 0.55; }
+
+    .task-item.done-item .task-title {
+      text-decoration: line-through;
+      color: #9ca3af;
+    }
+
+    .task-title {
+      flex: 1;
+      font-size: 0.97rem;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-toggle, .btn-delete {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      display: inline-block;
+      transition: background 0.15s;
+    }
+
+    .btn-toggle {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .btn-toggle:hover { background: #c7d2fe; }
+
+    .btn-delete {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+
+    .btn-delete:hover { background: #fecaca; }
+
+    .empty {
+      text-align: center;
+      color: #9ca3af;
+      padding: 32px 0;
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #4f46e5;
+      flex-shrink: 0;
+    }
+
+    .badge.done { background: #10b981; }
+
+    footer {
+      margin-top: 36px;
+      color: #d1d5db;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Task Manager</h1>
+    <p>A simple DevOps demo app — Flask + MySQL + Docker + Jenkins + Terraform</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="num">{{ total }}</div>
+      <div class="label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ done }}</div>
+      <div class="label">Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="num">{{ total - done }}</div>
+      <div class="label">Pending</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <form class="add-form" action="/add" method="POST">
+      <input type="text" name="title" placeholder="Add a new task..." required autocomplete="off" />
+      <button type="submit">+ Add</button>
+    </form>
+
+    <div class="task-list">
+      {% if tasks %}
+        {% for task in tasks %}
+        <div class="task-item {% if task.done %}done-item{% endif %}">
+          <div class="badge {% if task.done %}done{% endif %}"></div>
+          <span class="task-title">{{ task.title }}</span>
+          <div class="task-actions">
+            <a href="/toggle/{{ task.id }}" class="btn-toggle">
+              {% if task.done %}Undo{% else %}Done{% endif %}
+            </a>
+            <a href="/delete/{{ task.id }}" class="btn-delete">Delete</a>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty">No tasks yet. Add one above!</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <footer>Deployed via Jenkins CI/CD Pipeline on AWS EC2</footer>
+
+</body>
+</html>
