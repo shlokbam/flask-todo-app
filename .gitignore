@@ -1,0 +1,5 @@
+echo ".venv" > .gitignore
+echo "terraform/.terraform" >> .gitignore
+echo "terraform/terraform.tfstate*" >> .gitignore
+git add .gitignore
+git commit -m "add gitignore"
