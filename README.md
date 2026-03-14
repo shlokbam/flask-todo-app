@@ -690,37 +690,6 @@ terraform apply
 
 ---
 
-## Interview Q&A
-
-**Q: How does Flask connect to MySQL in this project?**
-
-A: Flask uses the MySQL container name (`mysql`) as the hostname because both containers are on the same Docker network called `two-tier`. Inside a Docker network, containers can reach each other by their service name — not by localhost or IP address.
-
-**Q: What is Docker Compose and why did you use it?**
-
-A: Docker Compose is a tool for defining and running multi-container applications. Instead of running `docker run` twice with all the flags, Compose reads a single `docker-compose.yml` file and manages both containers together including networking, volumes, and startup order.
-
-**Q: What is Terraform and why did you use it instead of clicking in the AWS console?**
-
-A: Terraform is an Infrastructure as Code tool. Instead of manually clicking through 10 AWS console screens to create an EC2 instance, I wrote `.tf` files that describe what infrastructure I need. Then one command (`terraform apply`) creates everything. This makes infrastructure repeatable, version-controlled, and documentable.
-
-**Q: What is a Terraform state file?**
-
-A: `terraform.tfstate` is Terraform's memory. It records exactly what resources were created — their IDs, IPs, and configuration. Every time you run Terraform, it reads this file to know what already exists and what needs to change. Never delete it and never commit it to GitHub.
-
-**Q: What is the security weakness in this project?**
-
-A: The MySQL root password is hardcoded as "root" in `docker-compose.yml`. In a production setup, I would use AWS Secrets Manager or environment variables injected at runtime — never hardcoded credentials in version-controlled files.
-
-**Q: What is the Jenkins Webhook doing?**
-
-A: The webhook is configured in GitHub to send an HTTP POST request to Jenkins every time code is pushed. Jenkins receives this trigger and automatically starts the pipeline — pulling the latest code, building the Docker image, and deploying. Without the webhook, you'd have to click "Build Now" manually every time.
-
-**Q: Why did you add swap memory?**
-
-A: t2.micro only has 1GB of RAM. Running Jenkins (~300MB), MySQL (~400MB), and Flask (~100MB) simultaneously exceeds available memory. Swap space uses disk as overflow RAM — slower than real RAM but prevents the system from crashing when memory runs out.
-
----
 
 ## Cleanup
 
@@ -732,17 +701,6 @@ terraform destroy
 ```
 
 This deletes the EC2 instance and security group. Because infrastructure is defined as code, you can recreate everything in minutes whenever needed — just run `terraform apply` again.
-
----
-
-## Key Learnings
-
-- **Docker networking** — containers communicate by service name, not localhost
-- **Infrastructure as Code** — reproducible, version-controlled infrastructure
-- **CI/CD automation** — every push deploys automatically, no manual steps
-- **Real debugging** — disk space, memory constraints, MySQL permissions, GPG keys — real problems have real solutions
-- **Swap memory** — practical workaround for memory-constrained servers
-- **Terraform idempotency** — running apply multiple times only changes what's different
 
 ---
 
