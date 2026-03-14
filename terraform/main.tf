@@ -60,4 +60,8 @@ resource "aws_instance" "flask_server" {
   tags = {
     Name = "flask-jenkins-server"
   }
+
+  root_block_device {
+  volume_size = 20
+}
 }
